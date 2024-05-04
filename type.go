@@ -9,6 +9,7 @@ type WriteOnlyGrChannel[T any] interface {
 }
 
 type ReadOnlyGrChannel[T any] interface {
+	Receive() <-chan T
 	ReadValue() (T, bool)
 	ReadAllAvailableValues() ([]T, bool)
 	ReadFirstNValues(count int) ([]T, bool)

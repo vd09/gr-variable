@@ -16,6 +16,10 @@ func (ch ChanVar[T]) WriteAllValue(values []T) {
 	}
 }
 
+func (ch ChanVar[T]) Receive() <-chan T {
+	return ch
+}
+
 func (ch ChanVar[T]) ReadValue() (T, bool) {
 	item, ok := <-ch
 	return item, ok
@@ -62,7 +66,7 @@ func (ch ChanVar[T]) ReadAllValuesWithTimeout(timeout time.Duration) ([]T, bool)
 		select {
 		case <-expire.C:
 			return result, true
-		case item, ok := <-ch:
+		case item, ok := <-ch.Receive():
 			if !ok {
 				return result, false
 			}
