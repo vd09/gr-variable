@@ -3,8 +3,10 @@ package gr_variable
 import "time"
 
 type WriteOnlyGrChannel[T any] interface {
-	WriteValue(value T)
-	WriteAllValue(values []T)
+	WriteValue(value T) bool
+	MustWriteValue(value T)
+	WriteAllValue(values []T) (int, bool)
+	MustWriteAllValue(values []T)
 	StopWriting()
 }
 

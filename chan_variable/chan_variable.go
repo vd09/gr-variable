@@ -6,13 +6,31 @@ import (
 
 type ChanVar[T any] chan T
 
-func (ch ChanVar[T]) WriteValue(value T) {
+func (ch ChanVar[T]) WriteValue(value T) bool {
+	select {
+	case ch <- value:
+		return true
+	default:
+		return false
+	}
+}
+
+func (ch ChanVar[T]) MustWriteValue(value T) {
 	ch <- value
 }
 
-func (ch ChanVar[T]) WriteAllValue(values []T) {
+func (ch ChanVar[T]) WriteAllValue(values []T) (int, bool) {
+	for index, item := range values {
+		if success := ch.WriteValue(item); !success {
+			return index, false
+		}
+	}
+	return len(values), true
+}
+
+func (ch ChanVar[T]) MustWriteAllValue(values []T) {
 	for _, item := range values {
-		ch.WriteValue(item)
+		ch.MustWriteValue(item)
 	}
 }
 

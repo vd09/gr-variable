@@ -22,7 +22,7 @@ func testReadAllValues(t *testing.T) {
 	values := []int{1, 2, 3}
 	go func() {
 		// Write some values to the channel
-		ch.WriteAllValue(values)
+		ch.MustWriteAllValue(values)
 	}()
 
 	totalElements := 0
@@ -74,7 +74,7 @@ func testReadAllValuesWithLength(t *testing.T) {
 	values := []int{1, 2, 3}
 	go func() {
 		// Write some values to the channel
-		ch.WriteAllValue(values)
+		ch.MustWriteAllValue(values)
 	}()
 
 	totalElements := 0
@@ -118,7 +118,7 @@ func TestReadAllValues(t *testing.T) {
 
 	// Write values to the channel in a goroutine
 	go func() {
-		ch.WriteAllValue(values)
+		ch.MustWriteAllValue(values)
 		ch.StopWriting()
 	}()
 
@@ -149,7 +149,7 @@ func TestReadAllValuesWithTimeout(t *testing.T) {
 	// Write values to the channel in a goroutine
 	go func() {
 		for _, v := range values {
-			ch.WriteValue(v)
+			ch.MustWriteValue(v)
 			time.Sleep(100 * time.Millisecond)
 		}
 	}()
@@ -183,5 +183,45 @@ func TestReadAllValuesWithTimeout(t *testing.T) {
 	// Check if reading with timeout from an empty channel returns false
 	if !timeoutOK {
 		t.Error("Expected ReadAllValuesWithTimeout to return true due to timeout")
+	}
+}
+
+func TestWriteValue(t *testing.T) {
+	// Create a new channel variable
+	ch := NewCharVarWithLength[int](4)
+
+	values := []int{11, 12, 13}
+	for _, val := range values {
+		success := ch.WriteValue(val)
+		if !success {
+			t.Errorf("WriteValue(%d) failed unexpectedly", val)
+		}
+	}
+
+	ch.StopWriting()
+
+	// Use defer and recover to capture the panic
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("The code did not panic as expected")
+		}
+	}()
+
+	// This write should panic
+	ch.WriteValue(14)
+}
+
+func TestWriteAllValue(t *testing.T) {
+	// Create a new channel variable
+	ch := NewCharVarWithLength[int](4)
+
+	// Write multiple values to the channel
+	values := []int{11, 12, 13, 14, 15}
+	n, success := ch.WriteAllValue(values)
+	if success {
+		t.Errorf("WriteAllValue success unexpectedly")
+	}
+	if n != 4 {
+		t.Errorf("Last element is not rejected")
 	}
 }
